@@ -1,0 +1,1167 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0d1026">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="오늘 밤">
+<title>오늘 밤 할 것</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+  :root {
+    --bg: #0d1026;
+    --ink: #eef0ff;
+    --muted: #a3a8d6;
+    --faint: #6f74a6;
+    --card: rgba(30, 34, 78, .72);
+    --panel: rgba(255, 255, 255, .035);
+    --line: rgba(255, 255, 255, .09);
+    --accent: #ffd166;
+    --second: #b9c0ff;
+    --font: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    min-height: 100vh;
+    min-height: 100dvh;
+    background:
+      radial-gradient(900px 520px at 50% -8%, #2b3172 0%, rgba(43, 49, 114, 0) 62%),
+      radial-gradient(600px 400px at 90% 110%, #2a1d55 0%, rgba(42, 29, 85, 0) 60%),
+      var(--bg);
+    background-attachment: fixed;
+    color: var(--ink);
+    font-family: var(--font);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  /* 별 */
+  body::before {
+    content: "";
+    position: fixed; inset: 0;
+    pointer-events: none;
+    background-image:
+      radial-gradient(1.4px 1.4px at 12% 18%, rgba(255,255,255,.85), transparent 60%),
+      radial-gradient(1px 1px at 27% 8%, rgba(255,255,255,.6), transparent 60%),
+      radial-gradient(1.6px 1.6px at 81% 14%, rgba(255,255,255,.8), transparent 60%),
+      radial-gradient(1px 1px at 66% 26%, rgba(255,255,255,.5), transparent 60%),
+      radial-gradient(1.2px 1.2px at 92% 42%, rgba(255,255,255,.6), transparent 60%),
+      radial-gradient(1px 1px at 6% 52%, rgba(255,255,255,.55), transparent 60%),
+      radial-gradient(1.3px 1.3px at 18% 78%, rgba(255,255,255,.5), transparent 60%),
+      radial-gradient(1px 1px at 74% 88%, rgba(255,255,255,.45), transparent 60%),
+      radial-gradient(1.2px 1.2px at 44% 4%, rgba(255,255,255,.7), transparent 60%),
+      radial-gradient(1px 1px at 55% 95%, rgba(255,255,255,.35), transparent 60%);
+  }
+  main {
+    position: relative;
+    max-width: 520px;
+    margin: 0 auto;
+    padding: calc(env(safe-area-inset-top, 0px) + 28px) 16px calc(env(safe-area-inset-bottom, 0px) + 40px);
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 22px;
+  }
+  header { text-align: center; }
+  .date { color: var(--muted); font-size: 14px; letter-spacing: .02em; margin: 0 0 6px; min-height: 17px; }
+  h1 { margin: 0; font-size: 30px; font-weight: 800; letter-spacing: -.02em; }
+  h1 .moon { color: var(--accent); }
+
+  /* 룰렛 */
+  .wheel {
+    position: relative;
+    width: min(88vw, 420px);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    padding: 10px;
+    background: linear-gradient(150deg, #343a86, #151838 70%);
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,.12) inset,
+      0 22px 60px rgba(0,0,0,.55),
+      0 0 90px rgba(120,130,255,.18);
+    margin-top: 6px;
+  }
+  .wheel canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    will-change: transform;
+  }
+  .pointer {
+    position: absolute;
+    top: -14px;
+    left: 50%;
+    width: 34px;
+    height: 44px;
+    margin-left: -17px;
+    transform-origin: 50% 30%;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,.5));
+    z-index: 2;
+  }
+  .hub {
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 21%; height: 21%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #2a2f6e, #10132e 75%);
+    box-shadow: 0 0 0 3px rgba(255,255,255,.9), 0 6px 18px rgba(0,0,0,.5);
+    display: grid;
+    place-items: center;
+    z-index: 1;
+  }
+  .hub svg { width: 46%; height: 46%; }
+
+  /* 버튼 */
+  .spin {
+    appearance: none;
+    border: 0;
+    border-radius: 999px;
+    padding: 16px 44px;
+    font: 800 19px/1 var(--font);
+    letter-spacing: .02em;
+    color: #1d1a0b;
+    background: linear-gradient(180deg, #ffe08a, #ffc23d);
+    box-shadow: 0 8px 22px rgba(255, 194, 61, .3), 0 2px 0 rgba(255,255,255,.5) inset;
+    cursor: pointer;
+    transition: transform .12s ease, filter .2s ease, opacity .2s ease, background .3s ease;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  .spin:hover { filter: brightness(1.05); }
+  .spin:active { transform: translateY(1px) scale(.98); }
+  .spin:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+  .spin:disabled {
+    cursor: default;
+    transform: none;
+    filter: none;
+    color: var(--muted);
+    background: rgba(255,255,255,.07);
+    box-shadow: 0 0 0 1px var(--line) inset;
+    font-size: 16px;
+    padding: 16px 28px;
+  }
+  .spin.busy:disabled { color: #1d1a0b; background: linear-gradient(180deg, #ffe08a, #ffc23d); opacity: .6; font-size: 19px; padding: 16px 44px; }
+
+  .status { min-height: 20px; margin: -8px 0 0; color: var(--muted); font-size: 14px; line-height: 1.5; text-align: center; }
+
+  /* 결과 */
+  .results {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .card {
+    position: relative;
+    overflow: hidden;
+    border-radius: 18px;
+    padding: 16px 16px 18px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    min-height: 112px;
+    backdrop-filter: blur(6px);
+    transition: border-color .3s ease, box-shadow .3s ease;
+  }
+  .card::before {
+    content: "";
+    position: absolute; left: 0; top: 0; bottom: 0;
+    width: 5px;
+    background: var(--chip, transparent);
+    transition: background .3s ease;
+  }
+  .card.filled { border-color: rgba(255,255,255,.18); box-shadow: 0 10px 28px rgba(0,0,0,.28); }
+  .rank { margin: 0 0 10px; font-size: 13px; font-weight: 700; color: var(--accent); letter-spacing: .04em; }
+  .card[data-rank="2"] .rank { color: var(--second); }
+  .pick { margin: 0; font-size: 19px; font-weight: 800; line-height: 1.3; letter-spacing: -.01em; word-break: keep-all; }
+  .no {
+    display: inline-grid;
+    place-items: center;
+    min-width: 24px; height: 24px;
+    padding: 0 6px;
+    margin-right: 6px;
+    border-radius: 999px;
+    background: var(--chip, #444);
+    color: #15172b;
+    font-size: 13px;
+    font-weight: 800;
+    vertical-align: 2px;
+  }
+  .pick.empty { color: var(--faint); font-weight: 700; }
+  .pick.waiting { color: var(--muted); animation: breathe 1s ease-in-out infinite; }
+  @keyframes breathe { 50% { opacity: .35; } }
+  .pop { animation: pop .45s cubic-bezier(.2, 1.4, .4, 1); }
+  @keyframes pop { 0% { transform: scale(.85); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+  .same { margin: -8px 0 0; font-size: 13px; color: var(--muted); text-align: center; min-height: 18px; }
+
+  /* 패널 공통 */
+  .panel {
+    width: 100%;
+    border-radius: 18px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    padding: 18px 16px;
+  }
+  .panel h2 { margin: 0 0 14px; font-size: 16px; font-weight: 800; letter-spacing: -.01em; }
+  .panel h3 { margin: 22px 0 10px; font-size: 14px; font-weight: 700; color: var(--muted); }
+  .empty-note { margin: 0; color: var(--faint); font-size: 14px; line-height: 1.6; }
+
+  /* 기록: 요약 숫자 */
+  .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .tile { border-radius: 14px; background: rgba(255,255,255,.04); padding: 12px 10px; text-align: center; min-width: 0; }
+  .tile b { display: block; font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .tile b.txt { font-size: 15px; line-height: 1.35; min-height: 29px; display: flex; align-items: center; justify-content: center; word-break: keep-all; }
+  .tile span { display: block; margin-top: 4px; font-size: 12px; color: var(--muted); }
+
+  /* 기록: 항목별 막대 */
+  .legend { display: flex; gap: 14px; margin: 0 0 10px; font-size: 12px; color: var(--muted); }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+  .bars { list-style: none; margin: 0; padding: 0; }
+  .bars li { padding: 8px 0; }
+  .bars li + li { border-top: 1px solid var(--line); }
+  .bar-head { display: flex; align-items: baseline; gap: 8px; font-size: 14px; }
+  .bar-head .nm { flex: 1; min-width: 0; }
+  .bar-head .ct { color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .bar-head .ct b { color: var(--ink); font-weight: 700; }
+  .track { position: relative; height: 8px; margin-top: 6px; border-radius: 99px; background: rgba(255,255,255,.05); overflow: hidden; display: flex; }
+  .track .s1 { background: var(--c); }
+  .track .s2 { background: var(--c); opacity: .42; }
+
+  /* 기록: 지난 기록 */
+  .hist { list-style: none; margin: 0; padding: 0; }
+  .hist li { display: grid; grid-template-columns: 64px 1fr 1fr; gap: 8px; align-items: center; padding: 9px 0; font-size: 14px; }
+  .hist li + li { border-top: 1px solid var(--line); }
+  .hist .d { color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+  .hist .p { min-width: 0; line-height: 1.35; word-break: keep-all; }
+  .hist .no { min-width: 20px; height: 20px; font-size: 11px; margin-right: 5px; vertical-align: 1px; }
+  .more {
+    margin-top: 8px; width: 100%;
+    appearance: none; border: 1px solid var(--line); background: transparent; color: var(--muted);
+    border-radius: 12px; padding: 10px; font: 600 13px var(--font); cursor: pointer;
+  }
+
+  /* 확률표 */
+  details {
+    width: 100%;
+    border-radius: 16px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    padding: 4px 16px;
+  }
+  summary {
+    cursor: pointer;
+    padding: 12px 0;
+    color: var(--muted);
+    font-size: 14px;
+    font-weight: 600;
+    list-style: none;
+  }
+  summary::-webkit-details-marker { display: none; }
+  summary::after { content: "＋"; float: right; color: var(--faint); }
+  details[open] summary::after { content: "－"; }
+  .odds { list-style: none; margin: 0 0 8px; padding: 0; }
+  .odds li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 0;
+    border-top: 1px solid var(--line);
+    font-size: 15px;
+  }
+  .odds .dot { width: 12px; height: 12px; border-radius: 50%; flex: none; }
+  .odds .nm { flex: 1; }
+  .odds .pc { color: var(--muted); font-variant-numeric: tabular-nums; font-size: 14px; }
+  .odds li.double .pc { color: var(--accent); font-weight: 700; }
+  .note { margin: 4px 0 12px; color: var(--faint); font-size: 13px; line-height: 1.6; }
+
+  /* 연속 칩 */
+  .streak {
+    display: inline-flex; align-items: center; gap: 6px;
+    margin-top: 10px; padding: 6px 12px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.06);
+    border: 1px solid var(--line);
+    font-size: 13px; font-weight: 700; color: var(--muted);
+    min-height: 30px;
+  }
+  .streak.on { color: #ffe3a3; border-color: rgba(255, 209, 102, .35); background: rgba(255, 209, 102, .08); }
+  .streak b { font-size: 15px; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .streak.on b { color: #ffd166; }
+  .streak:empty { visibility: hidden; }
+
+  /* 알림 */
+  .push p { margin: 0 0 12px; color: var(--muted); font-size: 14px; line-height: 1.6; }
+  .push .row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .push button {
+    appearance: none; border: 1px solid var(--line); background: rgba(255,255,255,.06); color: var(--ink);
+    border-radius: 12px; padding: 11px 14px; font: 700 14px var(--font); cursor: pointer;
+  }
+  .push button.main { background: linear-gradient(180deg, #ffe08a, #ffc23d); color: #1d1a0b; border: 0; }
+  .push button:disabled { opacity: .5; cursor: default; }
+  .push .msg { margin: 10px 0 0; font-size: 13px; color: var(--faint); min-height: 18px; }
+
+  /* 알림 토스트 */
+  .toast {
+    position: fixed; left: 50%; top: calc(env(safe-area-inset-top, 0px) + 16px);
+    transform: translate(-50%, -20px); opacity: 0;
+    z-index: 20; pointer-events: none;
+    padding: 12px 18px; border-radius: 999px;
+    background: rgba(20, 22, 52, .85); border: 1px solid rgba(255, 209, 102, .4);
+    color: #ffe9b8; font-weight: 700; font-size: 15px; white-space: nowrap;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 10px 40px rgba(0,0,0,.4), 0 0 30px rgba(255, 209, 102, .15);
+    transition: opacity .5s ease, transform .5s cubic-bezier(.2, 1.3, .4, 1);
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  /* ── 밤하늘 층(연속 기록에 따라 켜진다) ─────────────────────────── */
+  #sky { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+  .aurora, .bigmoon { position: fixed; pointer-events: none; z-index: 0; opacity: 0; transition: opacity 2.5s ease; }
+  .aurora { left: -20%; right: -20%; top: -8vh; height: 62vh; }
+  .aurora i { position: absolute; border-radius: 50%; filter: blur(28px); animation: drift 18s ease-in-out infinite alternate; }
+  .aurora i:nth-child(1) { left: 5%; top: 18%; width: 70%; height: 26%; transform: rotate(-12deg); background: radial-gradient(closest-side, rgba(64, 230, 170, .5), rgba(64, 230, 170, 0)); }
+  .aurora i:nth-child(2) { left: 35%; top: 4%; width: 60%; height: 24%; background: radial-gradient(closest-side, rgba(80, 170, 255, .42), rgba(80, 170, 255, 0)); animation-duration: 24s; animation-delay: -6s; }
+  .aurora i:nth-child(3) { left: 0; top: 38%; width: 55%; height: 22%; background: radial-gradient(closest-side, rgba(170, 110, 255, 0), rgba(170, 110, 255, 0)); animation-duration: 21s; animation-delay: -11s; }
+  @keyframes drift { 0% { transform: translate(-6%, 0) rotate(-10deg) scale(1); } 100% { transform: translate(8%, 5%) rotate(-4deg) scale(1.15); } }
+  .bigmoon {
+    top: calc(env(safe-area-inset-top, 0px) + 46px); right: -54px; width: 200px; height: 200px; border-radius: 50%;
+    background: radial-gradient(circle at 36% 34%, #fffdf6 0%, #f6f0de 38%, #e3d8bd 72%, #cbbf9f 100%);
+    box-shadow: 0 0 50px 16px rgba(255, 244, 214, .16), 0 0 140px 50px rgba(255, 236, 190, .08);
+  }
+  .bigmoon::after {      /* 달 표면 얼룩(은은하게) */
+    content: ""; position: absolute; inset: 0; border-radius: 50%;
+    background:
+      radial-gradient(circle at 30% 58%, rgba(160, 150, 125, .22) 0 7%, transparent 9%),
+      radial-gradient(circle at 56% 32%, rgba(160, 150, 125, .16) 0 5%, transparent 7%),
+      radial-gradient(circle at 64% 64%, rgba(160, 150, 125, .18) 0 9%, transparent 12%),
+      radial-gradient(circle at 42% 80%, rgba(160, 150, 125, .12) 0 4%, transparent 6%);
+    filter: blur(1.5px);
+  }
+  @media (max-width: 480px) { .bigmoon { width: 140px; height: 140px; right: -62px; top: calc(env(safe-area-inset-top, 0px) + 4px); } }
+  .wheel .glow { position: absolute; inset: 0; border-radius: 50%; pointer-events: none; transition: box-shadow 1.5s ease; }
+  .bulbs { position: absolute; inset: 0; pointer-events: none; display: none; z-index: 1; }
+  .bulbs i {
+    position: absolute; left: 50%; top: 50%; width: 6px; height: 6px; margin: -3px 0 0 -3px; border-radius: 50%;
+    background: #fff3c4; box-shadow: 0 0 6px 2px rgba(255, 220, 120, .7);
+    transform: rotate(var(--a)) translateY(calc(min(88vw, 420px) / -2 + 5px));
+    animation: blink 1.2s steps(2, jump-none) infinite;
+  }
+  .bulbs i:nth-child(odd) { animation-delay: -.6s; }
+  @keyframes blink { 0% { opacity: 1; } 100% { opacity: .25; } }
+  @keyframes hue { to { filter: hue-rotate(360deg); } }
+  @keyframes shimmer { to { background-position: 200% 0; } }
+
+  body[data-lv="3"], body[data-lv="4"] {
+    background:
+      radial-gradient(900px 520px at 50% -8%, #24407a 0%, rgba(36, 64, 122, 0) 62%),
+      radial-gradient(700px 420px at 10% 110%, #133f4a 0%, rgba(19, 63, 74, 0) 60%),
+      var(--bg);
+  }
+  body[data-lv="5"], body[data-lv="6"] {
+    background:
+      radial-gradient(900px 560px at 50% -10%, #3a2f86 0%, rgba(58, 47, 134, 0) 62%),
+      radial-gradient(700px 480px at 100% 100%, #4a1f63 0%, rgba(74, 31, 99, 0) 60%),
+      radial-gradient(600px 420px at 0% 70%, #163b5a 0%, rgba(22, 59, 90, 0) 60%),
+      #0a0b22;
+  }
+  body[data-lv="7"] {
+    background:
+      radial-gradient(1000px 600px at 50% -10%, #4b2d92 0%, rgba(75, 45, 146, 0) 62%),
+      radial-gradient(800px 500px at 100% 100%, #6a1f6e 0%, rgba(106, 31, 110, 0) 60%),
+      radial-gradient(700px 500px at 0% 60%, #12476a 0%, rgba(18, 71, 106, 0) 60%),
+      #090a1f;
+  }
+  body[data-lv="8"] {
+    background:
+      radial-gradient(1000px 600px at 50% -10%, #3d2f8f 0%, rgba(61, 47, 143, 0) 60%),
+      radial-gradient(1200px 500px at 50% 120%, #8a4a2a 0%, rgba(138, 74, 42, 0) 60%),
+      radial-gradient(700px 500px at 100% 70%, #6a1f6e 0%, rgba(106, 31, 110, 0) 60%),
+      #0a0a1e;
+  }
+  body[data-lv] { background-attachment: fixed; }
+
+  body:is([data-lv="3"], [data-lv="4"], [data-lv="5"], [data-lv="6"], [data-lv="7"], [data-lv="8"]) .aurora { opacity: .55; }
+  body:is([data-lv="5"], [data-lv="6"], [data-lv="7"], [data-lv="8"]) .aurora i:nth-child(3) { background: radial-gradient(closest-side, rgba(200, 110, 255, .42), rgba(200, 110, 255, 0)); }
+  body:is([data-lv="7"], [data-lv="8"]) .aurora { opacity: .85; }
+  body:is([data-lv="4"], [data-lv="5"], [data-lv="6"], [data-lv="7"], [data-lv="8"]) .bigmoon { opacity: .85; }
+  body[data-lv="8"] .bigmoon { background: radial-gradient(circle at 38% 36%, #fff8e0 0%, #ffe39a 40%, #f2b95a 80%, #d98f3a 100%); box-shadow: 0 0 80px 30px rgba(255, 200, 100, .3), 0 0 200px 80px rgba(255, 170, 80, .15); }
+
+  body:is([data-lv="3"], [data-lv="4"], [data-lv="5"]) .wheel .glow { box-shadow: 0 0 0 2px rgba(255, 209, 102, .55), 0 0 36px 4px rgba(255, 209, 102, .28); }
+  body:is([data-lv="6"], [data-lv="7"], [data-lv="8"]) .wheel .glow { box-shadow: 0 0 0 2px rgba(255, 120, 160, .6), 0 0 44px 8px rgba(255, 120, 200, .35); animation: hue 7s linear infinite; }
+  body:is([data-lv="4"], [data-lv="5"], [data-lv="6"], [data-lv="7"], [data-lv="8"]) .bulbs { display: block; }
+  body[data-lv="8"] .bulbs i { background: #fff; box-shadow: 0 0 8px 3px rgba(255, 210, 90, .95); }
+  body:is([data-lv="5"], [data-lv="6"], [data-lv="7"], [data-lv="8"]) .hub { box-shadow: 0 0 0 3px rgba(255,255,255,.9), 0 0 24px 6px rgba(255, 209, 102, .45), 0 6px 18px rgba(0,0,0,.5); }
+  body:is([data-lv="5"], [data-lv="6"], [data-lv="7"], [data-lv="8"]) .pointer { filter: drop-shadow(0 4px 6px rgba(0,0,0,.5)) drop-shadow(0 0 10px rgba(255, 209, 102, .8)); }
+  body:is([data-lv="7"], [data-lv="8"]) h1 {
+    background: linear-gradient(90deg, #fff 0%, #ffe39a 25%, #c9b6ff 50%, #fff 75%, #ffe39a 100%);
+    background-size: 200% 100%;
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    animation: shimmer 6s linear infinite;
+  }
+  body:is([data-lv="7"], [data-lv="8"]) h1 .moon { -webkit-text-fill-color: initial; color: var(--accent); }
+  body:is([data-lv="7"], [data-lv="8"]) .card.filled { border-color: rgba(255, 209, 102, .35); }
+  body[data-lv="8"] .spin:not(:disabled) { background: linear-gradient(180deg, #fff1b8, #ffc23d 60%, #ff9f43); box-shadow: 0 8px 30px rgba(255, 170, 60, .5), 0 2px 0 rgba(255,255,255,.6) inset; }
+
+  @media (max-width: 360px) {
+    h1 { font-size: 26px; }
+    .pick { font-size: 17px; }
+    .card { padding: 14px 12px 16px; }
+    .hist li { grid-template-columns: 56px 1fr 1fr; font-size: 13px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .pop, .pick.waiting, .aurora i, .bulbs i, .wheel .glow, h1 { animation: none !important; }
+  }
+</style>
+</head>
+<body>
+<canvas id="sky" aria-hidden="true"></canvas>
+<div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
+<div class="bigmoon" aria-hidden="true"></div>
+<div class="toast" id="toast" role="status"></div>
+<main>
+  <header>
+    <p class="date" id="date">&nbsp;</p>
+    <h1><span class="moon">☾</span> 오늘 밤 할 것</h1>
+    <div class="streak" id="streak"></div>
+  </header>
+
+  <div class="wheel" id="wheel">
+    <svg class="pointer" id="pointer" viewBox="0 0 34 44" aria-hidden="true">
+      <path d="M17 43 C 12 34, 2 24, 2 15 A 15 15 0 0 1 32 15 C 32 24, 22 34, 17 43 Z" fill="#ffd166" stroke="#fff6d6" stroke-width="2"/>
+      <circle cx="17" cy="15" r="5" fill="#1d1a0b" opacity=".75"/>
+    </svg>
+    <div class="glow" aria-hidden="true"></div>
+    <div class="bulbs" id="bulbs" aria-hidden="true"></div>
+    <canvas id="cv" role="img" aria-label="오늘 밤 할 것 룰렛"></canvas>
+    <div class="hub" aria-hidden="true">
+      <svg viewBox="0 0 24 24"><path d="M15.5 3.2a8.8 8.8 0 1 0 5.3 12.9A7.2 7.2 0 0 1 15.5 3.2Z" fill="#ffd166"/></svg>
+    </div>
+  </div>
+
+  <button class="spin" id="spin" type="button" disabled>불러오는 중…</button>
+  <p class="status" id="status" aria-live="polite"></p>
+
+  <section class="results" aria-live="polite">
+    <div class="card" data-rank="1" id="card1">
+      <p class="rank">1순위</p>
+      <p class="pick empty" id="pick1">?</p>
+    </div>
+    <div class="card" data-rank="2" id="card2">
+      <p class="rank">2순위</p>
+      <p class="pick empty" id="pick2">?</p>
+    </div>
+  </section>
+  <p class="same" id="same"></p>
+
+  <section class="panel" id="stats" aria-labelledby="stats-h">
+    <h2 id="stats-h">기록</h2>
+    <div id="stats-body"><p class="empty-note">불러오는 중…</p></div>
+  </section>
+
+  <section class="panel push" id="push" hidden aria-labelledby="push-h">
+    <h2 id="push-h">알림</h2>
+    <div id="push-body"></div>
+    <p class="msg" id="push-msg" aria-live="polite"></p>
+  </section>
+
+  <details>
+    <summary>규칙과 칸별 확률</summary>
+    <p class="note">오후 10시부터 다음 날 새벽 1시까지 하룻밤에 한 번만 돌릴 수 있어요. 결과는 누르는 순간 서버가 뽑아서 바로 기록하기 때문에, 새로고침하거나 다른 기기에서 열어도 다시 돌릴 수 없어요.</p>
+    <ul class="odds" id="odds"></ul>
+    <p class="note">1·2번은 칸이 두 배 넓어서 두 배 자주 나와요. 1순위와 2순위는 따로따로 뽑기 때문에 같은 게 두 번 나올 수도 있어요. 뽑기는 서버의 암호용 난수(Python secrets)를 씁니다.</p>
+  </details>
+</main>
+
+<script>
+(() => {
+  "use strict";
+
+  // 기록 서버 (Caddy → 127.0.0.1:8101). 시험할 때만 ?api= 로 바꾼다.
+  const API = new URLSearchParams(location.search).get("api") || "https://api.owndrug.space/tonight/api";
+
+  // ── 목록 (w = 가중치, 1·2번만 2배) — 서버 tonight_server.py 의 ITEMS 와 번호가 같아야 한다 ──
+  const ITEMS = [
+    { n: 1,  name: "책 읽기 - Hard",      lines: ["책 읽기", "Hard"],   w: 2, c: "#ff8f87" },
+    { n: 2,  name: "책 읽기 - Soft",      lines: ["책 읽기", "Soft"],   w: 2, c: "#ffb672" },
+    { n: 3,  name: "청소하기",            lines: ["청소하기"],          w: 1, c: "#ffdc6b" },
+    { n: 4,  name: "목 스트레칭 & 명상",  lines: ["목 스트레칭", "& 명상"], w: 1, c: "#a6e37e" },
+    { n: 5,  name: "이두 & 삼두 운동",    lines: ["이두 & 삼두", "운동"], w: 1, c: "#5fdcb4" },
+    { n: 6,  name: "푸시업",              lines: ["푸시업"],            w: 1, c: "#62c6f2" },
+    { n: 7,  name: "풀업",                lines: ["풀업"],              w: 1, c: "#7fa2ff" },
+    { n: 8,  name: "사레레",              lines: ["사레레"],            w: 1, c: "#a594ff" },
+    { n: 9,  name: "스쿼트",              lines: ["스쿼트"],            w: 1, c: "#d891f5" },
+    { n: 10, name: "불스스!",             lines: ["불스스!"],           w: 1, c: "#ff8fc4" },
+  ];
+  const TOTAL = ITEMS.reduce((s, it) => s + it.w, 0); // 12
+  let acc = 0;
+  for (const it of ITEMS) {
+    it.start = acc / TOTAL * 360;   // 위쪽(12시)부터 시계 방향, 도
+    acc += it.w;
+    it.end = acc / TOTAL * 360;
+  }
+  const byN = n => ITEMS.find(it => it.n === n);
+  const idxOfN = n => ITEMS.findIndex(it => it.n === n);
+
+  // 멈출 위치(칸 안의 어디쯤)만 정하는 난수. 결과는 서버가 정한다.
+  const buf = new Uint32Array(1);
+  function u32() { crypto.getRandomValues(buf); return buf[0]; }
+  function randInt(n) { const lim = Math.floor(0x100000000 / n) * n; let x; do { x = u32(); } while (x >= lim); return x % n; }
+  function rand01() { return u32() / 0x100000000; }
+
+  // ── 그리기 ──────────────────────────────────────────────────────
+  const cv = document.getElementById("cv");
+  const ctx = cv.getContext("2d");
+  const pointer = document.getElementById("pointer");
+  const FONT = getComputedStyle(document.documentElement).getPropertyValue("--font");
+  const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let rot = 0;          // 현재 회전각(도, 누적)
+  let highlight = -1;   // 강조할 칸
+
+  const rad = d => (d - 90) * Math.PI / 180;
+
+  function draw() {
+    const size = cv.offsetWidth;            // transform 영향 없는 레이아웃 크기
+    if (!size) return;
+    const dpr = Math.min(window.devicePixelRatio || 1, 3);
+    if (cv.width !== Math.round(size * dpr)) {
+      cv.width = Math.round(size * dpr);
+      cv.height = Math.round(size * dpr);
+    }
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, size, size);
+    const c = size / 2, R = size / 2;
+    const fs = Math.max(11, R * 0.082);
+
+    ITEMS.forEach((it, i) => {
+      const on = highlight < 0 || highlight === i;
+      ctx.beginPath();
+      ctx.moveTo(c, c);
+      ctx.arc(c, c, R, rad(it.start), rad(it.end));
+      ctx.closePath();
+      ctx.fillStyle = it.c;
+      ctx.globalAlpha = on ? 1 : 0.22;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      ctx.strokeStyle = "#11142f";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      const mid = (it.start + it.end) / 2;
+      ctx.save();
+      ctx.translate(c, c);
+      ctx.rotate(rad(mid));
+      ctx.textBaseline = "middle";
+      ctx.fillStyle = on ? "#15172b" : "rgba(21,23,43,.55)";
+      ctx.font = `800 ${fs}px ${FONT}`;
+      ctx.textAlign = "right";
+      const x = R * 0.9;
+      const lh = fs * 1.18;
+      if (it.lines.length === 1) {
+        ctx.fillText(it.lines[0], x, 0);
+      } else {
+        ctx.fillText(it.lines[0], x, -lh / 2);
+        ctx.font = `700 ${fs * 0.92}px ${FONT}`;
+        ctx.fillText(it.lines[1], x, lh / 2);
+      }
+      ctx.font = `800 ${fs * 0.86}px ${FONT}`;
+      ctx.textAlign = "center";
+      ctx.fillStyle = on ? "rgba(21,23,43,.5)" : "rgba(21,23,43,.25)";
+      ctx.fillText(String(it.n), R * 0.34, 0);
+      ctx.restore();
+    });
+
+    if (highlight >= 0) {
+      const it = ITEMS[highlight];
+      ctx.beginPath();
+      ctx.moveTo(c, c);
+      ctx.arc(c, c, R - 2, rad(it.start), rad(it.end));
+      ctx.closePath();
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 4;
+      ctx.lineJoin = "round";
+      ctx.stroke();
+    }
+  }
+
+  // 지금 바늘(12시) 아래 있는 칸
+  function indexAt(r) {
+    const a = ((-r % 360) + 360) % 360;
+    for (let i = 0; i < ITEMS.length; i++) if (a >= ITEMS[i].start && a < ITEMS[i].end) return i;
+    return ITEMS.length - 1;
+  }
+
+  function tick() {
+    if (reduceMotion || !pointer.animate) return;
+    pointer.animate([{ transform: "rotate(-16deg)" }, { transform: "rotate(0deg)" }], { duration: 140, easing: "ease-out" });
+  }
+
+  // 정해진 칸(idx) 안의 임의 지점에 멈추도록 돌린다
+  function spinTo(idx, extraTurnsBase, baseDuration) {
+    return new Promise(resolve => {
+      const it = ITEMS[idx];
+      const land = it.start + (it.end - it.start) * (0.1 + 0.8 * rand01());   // 경계 바로 위는 피함
+      const from = rot;
+      const fromMod = ((from % 360) + 360) % 360;
+      const targetMod = (360 - land) % 360;
+      let delta = targetMod - fromMod;
+      if (delta < 0) delta += 360;
+      const turns = reduceMotion ? 1 : extraTurnsBase + randInt(3);
+      const to = from + turns * 360 + delta;
+      const dur = reduceMotion ? 900 : baseDuration + randInt(700);
+      const t0 = performance.now();
+      let last = indexAt(from);
+      function frame(now) {
+        const p = Math.min(1, (now - t0) / dur);
+        const e = 1 - Math.pow(1 - p, 4);
+        rot = from + (to - from) * e;
+        cv.style.transform = `rotate(${rot}deg)`;
+        const k = indexAt(rot);
+        if (k !== last) { last = k; tick(); }
+        if (p < 1) requestAnimationFrame(frame);
+        else { rot = to; cv.style.transform = `rotate(${rot}deg)`; resolve(); }
+      }
+      requestAnimationFrame(frame);
+    });
+  }
+
+  // ── 날짜·시간 도우미 ──────────────────────────────────────────────
+  const $ = id => document.getElementById(id);
+  const WD = ["일", "월", "화", "수", "목", "금", "토"];
+  const ymd = s => { const [y, m, d] = s.split("-").map(Number); return new Date(Date.UTC(y, m - 1, d)); };
+  const nightLong = s => { const d = ymd(s); return `${d.getUTCMonth() + 1}월 ${d.getUTCDate()}일 ${WD[d.getUTCDay()]}요일 밤`; };
+  const nightShort = s => { const d = ymd(s); return `${d.getUTCMonth() + 1}/${d.getUTCDate()} (${WD[d.getUTCDay()]})`; };
+  const prevDay = s => { const d = ymd(s); d.setUTCDate(d.getUTCDate() - 1); return d.toISOString().slice(0, 10); };
+  function left(ms) {
+    const m = Math.max(0, Math.ceil(ms / 60000));
+    if (m >= 60) return `${Math.floor(m / 60)}시간 ${m % 60}분`;
+    return `${m}분`;
+  }
+
+  // ── 상태 ────────────────────────────────────────────────────────
+  const btn = $("spin"), statusEl = $("status"), sameEl = $("same"), dateEl = $("date");
+  let S = null;        // 서버가 준 마지막 상태
+  let skew = 0;        // 서버 시각 - 이 기기 시각
+  let busy = false;    // 돌리는 중엔 화면을 덮어쓰지 않는다
+  let failed = false;
+  const serverNow = () => Date.now() + skew;
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+  function setCard(rank, n, mode) {
+    const card = $("card" + rank), pick = $("pick" + rank);
+    pick.className = "pick";
+    card.classList.remove("filled");
+    card.style.removeProperty("--chip");
+    if (mode === "empty") { pick.classList.add("empty"); pick.textContent = "?"; return; }
+    if (mode === "waiting") { pick.classList.add("waiting"); pick.textContent = "돌리는 중…"; return; }
+    const it = byN(n);
+    const color = it ? it.c : "#888";
+    card.style.setProperty("--chip", color);
+    card.classList.add("filled");
+    pick.replaceChildren(chip(n, color), document.createTextNode(it ? it.name : `${n}번`));
+    if (mode === "new") pick.classList.add("pop");
+  }
+  function chip(n, color) {
+    const s = document.createElement("span");
+    s.className = "no";
+    s.style.setProperty("--chip", color);
+    s.textContent = n;
+    return s;
+  }
+
+  function focusRecord() {
+    if (!S) return null;
+    const key = S.open ? S.night : S.recent_night;
+    return S.spins.find(r => r.night === key) || null;
+  }
+
+  function render() {
+    if (!S) return;
+    renderStats();
+    if (busy) return;
+    renderStreak();
+    applyTheme(S.streak || 0);
+    const rec = focusRecord();
+    if (rec) {
+      setCard(1, rec.first.n, "shown");
+      setCard(2, rec.second.n, "shown");
+      sameEl.textContent = rec.first.n === rec.second.n ? "1순위와 2순위가 같은 게 나왔어요" : "";
+    } else {
+      setCard(1, 0, "empty");
+      setCard(2, 0, "empty");
+      sameEl.textContent = "";
+    }
+    btn.classList.remove("busy");
+    if (S.open) {
+      dateEl.textContent = nightLong(S.night);
+      btn.disabled = !!rec;
+      btn.textContent = rec ? "오늘 밤은 이미 돌렸어요" : "돌리기";
+    } else {
+      // 시간 밖: 지난밤 결과가 있으면 그걸, 없으면 오늘 밤 날짜를 보여 준다
+      dateEl.textContent = rec ? nightLong(S.recent_night) : nightLong(S.opens_at.slice(0, 10));
+      btn.disabled = true;
+      btn.textContent = "오후 10시에 열려요";
+    }
+    updateClock();
+  }
+
+  // 남은 시간 문구 + 시간창 경계를 넘으면 서버 상태를 다시 받는다
+  function updateClock() {
+    if (!S || busy || failed) return;
+    const now = serverNow();
+    const rec = focusRecord();
+    if (S.open) {
+      const until = Date.parse(S.closes_at) - now;
+      if (until <= 0) return refresh();
+      statusEl.textContent = rec
+        ? "다음 판은 내일 밤 10시에 열려요"
+        : `한 번 누르면 두 번 연달아 돌아가요 · 새벽 1시 마감 (${left(until)} 남음)`;
+    } else {
+      const until = Date.parse(S.opens_at) - now;
+      if (until <= 0) return refresh();
+      statusEl.textContent = rec
+        ? `지난밤 결과예요 · 다음 판은 ${left(until)} 뒤 (오후 10시)`
+        : `오후 10시부터 새벽 1시까지 돌릴 수 있어요 · ${left(until)} 남음`;
+    }
+  }
+
+  let refreshing = null;
+  function refresh() {
+    if (refreshing) return refreshing;
+    refreshing = (async () => {
+      try {
+        const r = await fetch(API + "/state", { cache: "no-store" });
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        apply(await r.json());
+        failed = false;
+      } catch (e) {
+        showFail();
+      } finally {
+        refreshing = null;
+      }
+    })();
+    return refreshing;
+  }
+  function apply(state) {
+    S = state;
+    skew = Date.parse(state.now) - Date.now();
+    render();
+    if (!pushStarted) { pushStarted = true; pushInit(); }
+  }
+  function showFail() {
+    failed = true;
+    if (busy) return;
+    btn.classList.remove("busy");
+    btn.disabled = false;
+    btn.textContent = "다시 불러오기";
+    statusEl.textContent = "기록 서버에 연결하지 못했어요. 잠시 뒤 다시 눌러 주세요";
+  }
+
+  // ── 돌리기: 서버가 1·2순위를 뽑아 기록하고, 화면은 그 결과로 돌아간다 ──
+  async function go() {
+    if (busy) return;
+    if (failed || !S) { btn.disabled = true; btn.textContent = "불러오는 중…"; return refresh(); }
+    busy = true;
+    btn.disabled = true;
+    btn.classList.add("busy");
+    btn.textContent = "돌리는 중…";
+    statusEl.textContent = "뽑는 중…";
+
+    let res, body;
+    try {
+      res = await fetch(API + "/spin", { method: "POST", cache: "no-store" });
+      body = await res.json();
+    } catch (e) {
+      busy = false;
+      showFail();
+      return;
+    }
+    if (res.status !== 200) {
+      busy = false;
+      if (body && body.state) apply(body.state);
+      if (res.status === 409) statusEl.textContent = "오늘 밤은 이미 돌렸어요 (다른 화면에서 돌린 결과예요)";
+      else if (res.status !== 403) showFail();
+      return;
+    }
+
+    const rec = body.record;
+    S = body.state;
+    skew = Date.parse(S.now) - Date.now();
+    sameEl.textContent = "";
+    highlight = -1; draw();
+    setCard(1, 0, "waiting");
+    setCard(2, 0, "empty");
+
+    statusEl.textContent = "1순위 뽑는 중…";
+    await spinTo(idxOfN(rec.first.n), 6, 4200);
+    highlight = idxOfN(rec.first.n); draw();
+    setCard(1, rec.first.n, "new");
+    if (navigator.vibrate) navigator.vibrate(25);
+
+    statusEl.textContent = "1순위 나왔어요. 곧 2순위를 돌려요";
+    await sleep(reduceMotion ? 500 : 1300);
+
+    highlight = -1; draw();
+    setCard(2, 0, "waiting");
+    statusEl.textContent = "2순위 뽑는 중…";
+    await spinTo(idxOfN(rec.second.n), 5, 3800);
+    highlight = idxOfN(rec.second.n); draw();
+    setCard(2, rec.second.n, "new");
+    if (navigator.vibrate) navigator.vibrate([25, 60, 25]);
+
+    sameEl.textContent = rec.first.n === rec.second.n ? "1순위와 2순위가 같은 게 나왔어요" : "";
+    busy = false;
+    btn.classList.remove("busy");
+    btn.textContent = "오늘 밤은 이걸로!";
+    statusEl.textContent = "기록했어요 · 다음 판은 내일 밤 10시";
+    renderStats();
+    renderStreak();
+    setTimeout(() => applyTheme(S.streak || 0), 700);
+  }
+  btn.addEventListener("click", go);
+
+  // ── 기록·통계 ───────────────────────────────────────────────────
+  let showAll = false;
+  function renderStats() {
+    const box = $("stats-body");
+    const spins = (S && S.spins) || [];
+    if (!spins.length) {
+      box.innerHTML = '<p class="empty-note">아직 기록이 없어요. 오후 10시부터 새벽 1시 사이에 첫 판을 돌려 보세요.</p>';
+      return;
+    }
+    // 돌리는 중이면 방금 뽑은 기록은 아직 숨긴다(결과가 먼저 보이지 않게)
+    const rows = busy && S.open ? spins.filter(r => r.night !== S.night) : spins.slice();
+    const nights = rows.length;
+
+    // 연속: 가장 최근 밤부터 거꾸로, 빠진 밤이 나올 때까지
+    const have = new Set(rows.map(r => r.night));
+    let anchor = S.open ? S.night : S.recent_night;
+    if (S.open && !have.has(anchor)) anchor = prevDay(anchor);  // 오늘 밤 아직 안 돌렸으면 어젯밤부터
+    let streak = 0;
+    while (have.has(anchor)) { streak++; anchor = prevDay(anchor); }
+
+    const c1 = {}, c2 = {};
+    for (const r of rows) {
+      c1[r.first.n] = (c1[r.first.n] || 0) + 1;
+      c2[r.second.n] = (c2[r.second.n] || 0) + 1;
+    }
+    const tot = n => (c1[n] || 0) + (c2[n] || 0);
+    const maxTot = Math.max(1, ...ITEMS.map(it => tot(it.n)));
+    const best = Math.max(...ITEMS.map(it => tot(it.n)));
+    const tops = ITEMS.filter(it => best > 0 && tot(it.n) === best);
+
+    const esc = s => String(s).replace(/[&<>"]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
+    let h = '<div class="tiles">';
+    h += `<div class="tile"><b>${nights}</b><span>돌린 밤</span></div>`;
+    h += `<div class="tile"><b>${streak}</b><span>연속(밤)</span></div>`;
+    h += `<div class="tile"><b class="txt">${tops.length === 1 ? esc(tops[0].name) : tops.length ? `${tops.length}개 동률` : "-"}</b><span>가장 많이 나온 것</span></div>`;
+    h += "</div>";
+
+    h += `<h3>항목별 (1·2순위 합 ${nights * 2}번)</h3>`;
+    h += '<p class="legend"><span><i style="background:var(--ink)"></i>1순위</span><span><i style="background:var(--ink);opacity:.42"></i>2순위</span></p>';
+    h += '<ul class="bars">';
+    for (const it of ITEMS) {
+      const a = c1[it.n] || 0, b = c2[it.n] || 0;
+      const pct = Math.round((a + b) / (nights * 2) * 100);
+      h += `<li><div class="bar-head"><span class="nm">${it.n}. ${esc(it.name)}</span>`
+        + `<span class="ct"><b>${a + b}</b>번 · ${pct}% <span style="color:var(--faint)">(1순위 ${a} · 2순위 ${b})</span></span></div>`
+        + `<div class="track" style="--c:${it.c}"><span class="s1" style="width:${a / maxTot * 100}%"></span><span class="s2" style="width:${b / maxTot * 100}%"></span></div></li>`;
+    }
+    h += "</ul>";
+
+    h += "<h3>지난 기록</h3>";
+    const list = rows.slice().sort((x, y) => (x.night < y.night ? 1 : -1));
+    const shown = showAll ? list : list.slice(0, 7);
+    h += '<ul class="hist">';
+    for (const r of shown) {
+      const cell = p => {
+        const it = byN(p.n);
+        return `<span class="p"><span class="no" style="--chip:${it ? it.c : "#888"}">${p.n}</span>${esc(p.name)}</span>`;
+      };
+      h += `<li><span class="d">${nightShort(r.night)}</span>${cell(r.first)}${cell(r.second)}</li>`;
+    }
+    h += "</ul>";
+    if (list.length > 7) h += `<button class="more" id="more" type="button">${showAll ? "최근 7개만 보기" : `전체 보기 (${list.length})`}</button>`;
+    box.innerHTML = h;
+    const more = $("more");
+    if (more) more.addEventListener("click", () => { showAll = !showAll; renderStats(); });
+  }
+
+  // ── 연속 칩 ─────────────────────────────────────────────────────
+  function renderStreak() {
+    const el = $("streak");
+    const k = (S && S.streak) || 0;
+    el.classList.toggle("on", k > 0);
+    if (k > 0) el.innerHTML = `🔥 <b>${k}</b>밤 연속${S.today_done ? " · 오늘 완료 ✓" : ""}`;
+    else el.textContent = S && S.open ? "🕯️ 오늘 밤이 첫 불씨" : "🕯️ 오늘 밤 10시에 첫 불씨";
+  }
+
+  // ── 밤하늘 (연속 기록이 길어질수록 바뀐다. 무엇이 언제 바뀌는지는 비밀) ──
+  const TIERS = [0, 1, 3, 7, 14, 21, 30, 50, 100];
+  const levelOf = k => TIERS.filter(t => k >= t).length - 1;
+  const LV_KEY = "tonight-roulette:lv";
+  let curLv = -1;
+  function applyTheme(streak) {
+    const lv = levelOf(streak);
+    if (lv === curLv) return;
+    curLv = lv;
+    document.body.dataset.lv = lv;
+    sky.setLevel(lv);
+    let seen = null;
+    try { seen = localStorage.getItem(LV_KEY); } catch (e) {}
+    if (seen !== null && lv > Number(seen)) toast("✨ 밤하늘이 바뀌었어요");
+    try { localStorage.setItem(LV_KEY, String(lv)); } catch (e) {}
+  }
+  function toast(text) {
+    const t = $("toast");
+    t.textContent = text;
+    t.classList.add("show");
+    clearTimeout(toast._h);
+    toast._h = setTimeout(() => t.classList.remove("show"), 3800);
+  }
+  // 테두리 전구
+  (() => {
+    const b = $("bulbs");
+    for (let i = 0; i < 24; i++) {
+      const d = document.createElement("i");
+      d.style.setProperty("--a", `${i * 15}deg`);
+      b.append(d);
+    }
+  })();
+
+  const sky = (() => {
+    const c = $("sky"), g = c.getContext("2d");
+    let W = 0, H = 0, dpr = 1, lv = 0, raf = 0, last = 0;
+    let stars = [], shoots = [], dust = [], cons = [], band = null;
+    const R = (a, b) => a + Math.random() * (b - a);   // 장식용 난수(뽑기와 무관)
+    const COUNT = [0, 70, 100, 130, 160, 190, 220, 250, 290];
+    const SHOOT = [0, 0, .006, .008, .01, .013, .016, .02, .026];
+    const TINTS = ["255,255,255", "200,215,255", "255,236,200", "220,200,255"];
+
+    function size() {
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      W = innerWidth; H = innerHeight;
+      c.width = Math.round(W * dpr); c.height = Math.round(H * dpr);
+      build();
+    }
+    function build() {
+      stars = Array.from({ length: COUNT[lv] }, () => ({
+        x: R(0, W), y: R(0, H), r: R(.35, 1.3) * (lv >= 5 ? 1.15 : 1), a: R(.35, .95),
+        sp: R(.6, 2.2), ph: R(0, 6.28), tint: lv >= 5 ? TINTS[Math.floor(R(0, TINTS.length))] : TINTS[0],
+      }));
+      cons = [];
+      if (lv >= 5) {
+        const shapes = [   // 별자리 모양(상대 좌표)
+          [[0, 0], [.08, .03], [.15, .01], [.21, .05], [.25, .12], [.18, .14], [.14, .08]],
+          [[0, 0], [.05, .07], [.1, .02], [.15, .09], [.2, .03]],
+          [[0, .06], [.06, 0], [.12, .05], [.1, .13], [.03, .12]],
+        ];
+        const spots = [[.06, .1], [.62, .06], [.7, .7]];
+        shapes.forEach((sh, i) => {
+          const s = Math.min(W, 700), [ox, oy] = spots[i];
+          cons.push(sh.map(([x, y]) => [ox * W + x * s, oy * H + y * s]));
+        });
+      }
+      band = null;
+      if (lv >= 6) {           // 은하수: 미리 그려 둔다
+        band = document.createElement("canvas");
+        band.width = c.width; band.height = c.height;
+        const bg = band.getContext("2d");
+        bg.setTransform(dpr, 0, 0, dpr, 0, 0);
+        const cx = W * .5, cy = H * .45, ang = -0.55, len = Math.hypot(W, H);
+        bg.save(); bg.translate(cx, cy); bg.rotate(ang);
+        const grad = bg.createLinearGradient(0, -H * .18, 0, H * .18);
+        grad.addColorStop(0, "rgba(150,130,255,0)");
+        grad.addColorStop(.5, lv >= 7 ? "rgba(210,170,255,.16)" : "rgba(180,170,255,.11)");
+        grad.addColorStop(1, "rgba(150,130,255,0)");
+        bg.fillStyle = grad; bg.fillRect(-len / 2, -H * .18, len, H * .36);
+        for (let i = 0; i < 900; i++) {
+          const x = R(-len / 2, len / 2);
+          const y = (Math.random() + Math.random() + Math.random() - 1.5) * H * .09;
+          bg.fillStyle = `rgba(255,255,255,${R(.15, .7)})`;
+          bg.fillRect(x, y, R(.5, 1.2), R(.5, 1.2));
+        }
+        bg.restore();
+      }
+      dust = lv >= 8 ? Array.from({ length: 40 }, () => ({ x: R(0, W), y: R(0, H), v: R(8, 22), r: R(.8, 2), ph: R(0, 6.28) })) : [];
+      shoots = [];
+    }
+    function frame(t) {
+      raf = requestAnimationFrame(frame);
+      if (t - last < 33) return;              // 30fps 정도면 충분
+      const dt = last ? Math.min(.1, (t - last) / 1000) : .033;
+      last = t;
+      g.setTransform(dpr, 0, 0, dpr, 0, 0);
+      g.clearRect(0, 0, W, H);
+      if (band) { g.setTransform(1, 0, 0, 1, 0, 0); g.drawImage(band, 0, 0); g.setTransform(dpr, 0, 0, dpr, 0, 0); }
+      const sec = t / 1000;
+      for (const s of stars) {
+        const a = s.a * (.6 + .4 * Math.sin(sec * s.sp + s.ph));
+        g.fillStyle = `rgba(${s.tint},${a})`;
+        g.beginPath(); g.arc(s.x, s.y, s.r, 0, 6.283); g.fill();
+      }
+      if (cons.length) {
+        g.strokeStyle = `rgba(190,200,255,${.16 + .06 * Math.sin(sec * .8)})`;
+        g.lineWidth = .8;
+        for (const pts of cons) {
+          g.beginPath(); pts.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y))); g.stroke();
+          for (const [x, y] of pts) { g.fillStyle = "rgba(255,255,255,.9)"; g.beginPath(); g.arc(x, y, 1.6, 0, 6.283); g.fill(); }
+        }
+      }
+      if (Math.random() < SHOOT[lv]) {
+        const fromLeft = Math.random() < .5;
+        shoots.push({ x: fromLeft ? R(-50, W * .5) : R(W * .5, W + 50), y: R(-20, H * .35), vx: (fromLeft ? 1 : -1) * R(380, 620), vy: R(160, 300), life: 0, max: R(.7, 1.2) });
+      }
+      shoots = shoots.filter(s => (s.life += dt) < s.max);
+      for (const s of shoots) {
+        s.x += s.vx * dt; s.y += s.vy * dt;
+        const k = 1 - s.life / s.max, tail = .09;
+        const gr = g.createLinearGradient(s.x, s.y, s.x - s.vx * tail, s.y - s.vy * tail);
+        gr.addColorStop(0, `rgba(255,250,230,${.95 * k})`); gr.addColorStop(1, "rgba(255,250,230,0)");
+        g.strokeStyle = gr; g.lineWidth = 1.8; g.lineCap = "round";
+        g.beginPath(); g.moveTo(s.x, s.y); g.lineTo(s.x - s.vx * tail, s.y - s.vy * tail); g.stroke();
+      }
+      for (const d of dust) {
+        d.y -= d.v * dt; if (d.y < -10) { d.y = H + 10; d.x = R(0, W); }
+        g.fillStyle = `rgba(255,214,120,${.35 + .3 * Math.sin(sec * 2 + d.ph)})`;
+        g.beginPath(); g.arc(d.x + Math.sin(sec + d.ph) * 6, d.y, d.r, 0, 6.283); g.fill();
+      }
+    }
+    function run() {
+      cancelAnimationFrame(raf); raf = 0; last = 0;
+      if (lv === 0 || document.hidden) { g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, c.width, c.height); return; }
+      if (reduceMotion) { last = 0; frame(performance.now()); cancelAnimationFrame(raf); raf = 0; return; }
+      raf = requestAnimationFrame(frame);
+    }
+    addEventListener("resize", () => { if (lv) { size(); run(); } });
+    document.addEventListener("visibilitychange", run);
+    return {
+      setLevel(n) { lv = n; size(); run(); },
+      get level() { return lv; },
+    };
+  })();
+
+  // ── 알림(홈 화면에 추가한 앱에서 웹 푸시) ─────────────────────────
+  let pushStarted = false, swReg = null;
+  const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+  const pushOK = "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
+  function b64ToBytes(s) {
+    const p = "=".repeat((4 - s.length % 4) % 4);
+    const raw = atob((s + p).replace(/-/g, "+").replace(/_/g, "/"));
+    return Uint8Array.from(raw, ch => ch.charCodeAt(0));
+  }
+  const postJSON = (path, body) => fetch(API + path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  function pushMsg(t) { $("push-msg").textContent = t || ""; }
+
+  async function pushInit() {
+    const box = $("push"), body = $("push-body");
+    if (!S || !S.vapid_public) { box.hidden = true; return; }
+    box.hidden = false;
+    if (!pushOK) {
+      body.innerHTML = isIOS && !standalone
+        ? "<p>아이폰은 <b>홈 화면에 추가한 앱</b>에서만 알림을 켤 수 있어요. 사파리 공유 버튼 → ‘홈 화면에 추가’로 연 다음, 여기서 알림을 켜 주세요.</p>"
+        : "<p>이 브라우저는 알림을 지원하지 않아요.</p>";
+      return;
+    }
+    try { swReg = await navigator.serviceWorker.register("sw.js"); } catch (e) { body.innerHTML = "<p>알림 준비에 실패했어요.</p>"; return; }
+    let sub = null;
+    try { sub = await swReg.pushManager.getSubscription(); } catch (e) {}
+    if (sub && Notification.permission === "granted") {
+      postJSON("/subscribe", { subscription: sub.toJSON() }).catch(() => {});   // 서버 쪽 기록이 지워졌어도 다시 맞춘다
+      pushOn();
+    } else {
+      pushOff();
+    }
+  }
+  function pushOff() {
+    const body = $("push-body");
+    const denied = Notification.permission === "denied";
+    body.innerHTML = `<p>밤 10시에 ‘돌릴 시간’, 11시에 ‘아직 안 돌렸어요’를 보내 드려요. 11시 알림은 그 전에 돌렸으면 오지 않아요.</p>
+      <div class="row"><button class="main" id="push-on" type="button"${denied ? " disabled" : ""}>🔔 알림 켜기</button></div>`;
+    if (denied) pushMsg("알림이 막혀 있어요. 아이폰 설정 → 알림 → ‘오늘 밤’에서 허용해 주세요.");
+    $("push-on").addEventListener("click", enablePush);
+  }
+  function pushOn() {
+    $("push-body").innerHTML = `<p>🔔 알림 켜짐 · 밤 10시, 11시(안 돌렸을 때만)</p>
+      <div class="row"><button id="push-test" type="button">시험 알림 보내기</button><button id="push-off" type="button">알림 끄기</button></div>`;
+    $("push-test").addEventListener("click", testPush);
+    $("push-off").addEventListener("click", disablePush);
+  }
+  async function enablePush() {
+    pushMsg("");
+    let perm;
+    try { perm = await Notification.requestPermission(); } catch (e) { perm = "default"; }   // 반드시 누른 직후에 묻는다(iOS)
+    if (perm !== "granted") { pushMsg("알림을 허용해야 받을 수 있어요."); if (perm === "denied") pushOff(); return; }
+    try {
+      swReg = swReg || await navigator.serviceWorker.register("sw.js");
+      await navigator.serviceWorker.ready;
+      const sub = await swReg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToBytes(S.vapid_public) });
+      const r = await postJSON("/subscribe", { subscription: sub.toJSON() });
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      pushOn();
+      pushMsg("켜졌어요! ‘시험 알림 보내기’로 확인해 보세요.");
+    } catch (e) {
+      pushMsg("알림 등록에 실패했어요. 잠시 뒤 다시 눌러 주세요.");
+    }
+  }
+  async function testPush() {
+    const sub = swReg && await swReg.pushManager.getSubscription();
+    if (!sub) return pushOff();
+    pushMsg("보내는 중…");
+    try {
+      const r = await postJSON("/test", { endpoint: sub.endpoint });
+      pushMsg(r.ok ? "보냈어요. 몇 초 안에 알림이 와야 해요." : r.status === 429 ? "1분에 한 번만 보낼 수 있어요." : r.status === 404 ? "서버에 등록이 없어요. 알림을 껐다 다시 켜 주세요." : "보내지 못했어요.");
+    } catch (e) { pushMsg("서버에 연결하지 못했어요."); }
+  }
+  async function disablePush() {
+    try {
+      const sub = swReg && await swReg.pushManager.getSubscription();
+      if (sub) { postJSON("/unsubscribe", { endpoint: sub.endpoint }).catch(() => {}); await sub.unsubscribe(); }
+    } catch (e) {}
+    pushOff();
+    pushMsg("알림을 껐어요.");
+  }
+
+  // ── 확률표 ──────────────────────────────────────────────────────
+  const odds = $("odds");
+  for (const it of ITEMS) {
+    const li = document.createElement("li");
+    if (it.w > 1) li.className = "double";
+    const dot = document.createElement("span"); dot.className = "dot"; dot.style.background = it.c;
+    const nm = document.createElement("span"); nm.className = "nm"; nm.textContent = `${it.n}. ${it.name}`;
+    const pc = document.createElement("span"); pc.className = "pc";
+    pc.textContent = `${it.w}/${TOTAL} · ${(it.w / TOTAL * 100).toFixed(1)}%`;
+    li.append(dot, nm, pc);
+    odds.append(li);
+  }
+
+  // ── 시작 ────────────────────────────────────────────────────────
+  try { localStorage.removeItem("tonight-roulette:last"); } catch (e) {}   // 예전 판(기기 저장)의 흔적
+  draw();
+  const glyphs = ITEMS.map(it => it.lines.join("") + it.n).join("");
+  if (document.fonts && document.fonts.load) {
+    document.fonts.load(`800 16px "Pretendard Variable"`, glyphs).then(draw, () => {});
+    document.fonts.ready.then(draw);
+  }
+  let rz;
+  addEventListener("resize", () => { cancelAnimationFrame(rz); rz = requestAnimationFrame(draw); });
+  setInterval(updateClock, 1000);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden && !busy) refresh(); });
+  refresh();
+
+  window.__roulette = { ITEMS, indexAt, get rot() { return rot; }, get state() { return S; } };
+})();
+</script>
+</body>
+</html>
