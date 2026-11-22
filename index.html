@@ -488,7 +488,7 @@
   "use strict";
 
   // 기록 서버 (Caddy → 127.0.0.1:8101). 시험할 때만 ?api= 로 바꾼다.
-  const API = new URLSearchParams(location.search).get("api") || "https://api.owndrug.space/tonight/api";
+  const API = new URLSearchParams(location.search).get("api") || "https://api.ownpapers.com/tonight/api";
 
   // ── 목록 (w = 가중치, 1·2번만 2배) — 서버 tonight_server.py 의 ITEMS 와 번호가 같아야 한다 ──
   const ITEMS = [

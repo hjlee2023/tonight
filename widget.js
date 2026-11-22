@@ -1,6 +1,6 @@
 // TONIGHT_WIDGET — '오늘 밤 할 것' 위젯 본문 (Scriptable).
 // 아이폰의 Scriptable 에는 로더(작은 코드)만 넣고, 로더가 이 파일을 받아 실행한다. 여기만 고치면 위젯이 바뀐다.
-const API = "https://api.owndrug.space/tonight/api/state";
+const API = "https://api.ownpapers.com/tonight/api/state";
 const PAGE = "https://hjlee2023.github.io/tonight/";
 
 let S = null;
